@@ -69,6 +69,7 @@ def analyze_all_sets(num_sets):
 
         # Fit MSD to calculate D and k (part 1 calculations)
         m, sm, b, sb = functions.linear_fit_with_uncertainty(time_intervals, mean_squared_displacement)
+        chi_squared, reduced_chi_squared = functions.calculate_chi_squared(time_intervals, mean_squared_displacement, msd_uncertainty, T_uncertainty, m, b)
 
         if validate_data(m,b, time_intervals, mean_squared_displacement,0.8):
             valid_set_count += 1
@@ -77,6 +78,7 @@ def analyze_all_sets(num_sets):
 
             print(f"Set {i} - Slope (m): {m:.5e} ± {sm:.5e}")
             print(f"Set {i} - Intercept (b): {b:.5f} ± {sb:.5f}")
+            print(f"Set {i} - Reduced Chi-Squared: {reduced_chi_squared:.5f}")
 
             # Calculate D and k
             D = (m / 4) * 1e-12  # Convert µm²/s to m²/s
@@ -92,11 +94,17 @@ def analyze_all_sets(num_sets):
                 (6 * np.pi * D * viscosity * radius / T ** 2 * T_uncertainty) ** 2
             )
 
+            R = 8.3145
+            Na_calculated = R/k_calculated
+
             k_accepted = 1.38e-23
+            avogadro = 6.022e23
             percent_difference = np.abs((k_calculated - k_accepted) / k_accepted) * 100
+            avogadro_error = np.abs((Na_calculated-avogadro)/avogadro)*100
 
             print(f"Set {i} - Calculated Boltzmann Constant (k): {k_calculated:.4e} J/K ± {k_calculated_uncertainty:.4e}")
             print(f"Set {i} - Percent Difference compared to accepted value of k: {percent_difference:.4e} %\n")
+            print(f"Set {i} - Avogadro's Percent Error: {avogadro_error:.4e} %\n")
 
     if valid_set_count == 0:
         print("No valid data sets found.")
@@ -185,13 +193,13 @@ def fit_rayleigh_distribution(all_step_sizes, time_interval):
 
     return D_estimated_cf_SI, sigma_estimated_cf, sigma_uncertainty_cf, D_estimated_mle_SI, sigma_estimated_mle
 
-# Main execution
-num_sets = 21
+if __name__ == '__main__':
+    num_sets = 21
 
-all_step_sizes = analyze_all_sets(num_sets)
+    all_step_sizes = analyze_all_sets(num_sets)
 
-# Only proceed if there are valid step sizes
-if len(all_step_sizes) > 0:
-    D_estimated_cf_SI, sigma_estimated_cf, sigma_uncertainty_cf, D_estimated_mle_SI, sigma_estimated_mle = fit_rayleigh_distribution(all_step_sizes, 0.5)  # Time interval = 0.5s
-else:
-    print("No valid data to fit Rayleigh distribution.")
+    # Only proceed if there are valid step sizes
+    if len(all_step_sizes) > 0:
+        D_estimated_cf_SI, sigma_estimated_cf, sigma_uncertainty_cf, D_estimated_mle_SI, sigma_estimated_mle = fit_rayleigh_distribution(all_step_sizes, 0.5)  # Time interval = 0.5s
+    else:
+        print("No valid data to fit Rayleigh distribution.")
