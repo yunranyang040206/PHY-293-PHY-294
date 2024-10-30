@@ -5,7 +5,7 @@ from scipy.stats import rayleigh
 import functions  # Assuming you have a module named 'functions' with necessary functions
 
 # Constants and Conversion Factors
-conversion_factor = 0.1155  # microns per pixel
+conversion_factor = 0.12048   # microns per pixel
 T = 296.5  # Temperature in Kelvin
 viscosity = 1.00e-3  # Viscosity in SI units (Pa.s)
 radius = 1.9e-6 / 2  # Radius of the bead in meters
